@@ -186,6 +186,22 @@ final class URLSecMgr extends SecurityManager {
         Thread.setDefaultUncaughtExceptionHandler(originalErrHandler);
 
         IOException ex = new IOException("Denied - " + host + ":" + port);
+
+        Class<?>[] classContext = getClassContext();
+        int maxStackCheckCount = Math.min(10, classContext.length - 1);
+        for (int i = 0; i < maxStackCheckCount; i++) {
+            Class<?> cls = classContext[i];
+            String className = cls.getName();
+            if ("java.net.URLStreamHandler".equals(className)) {
+                // make URLStreamHandler::getHostAddress fallback to null, as it catches "UnknownHostException"
+                // prevent crash in URL::hashCode > URLStreamHandler > InetAddress stack
+                ex = new UnknownHostException(ex.getMessage());
+                LOGGER.info(REJECT_MARKER, "{}; Captured from URLStreamHandler, possible from URL::hashCode",
+                        ex.getMessage());
+                break;
+            }
+        }
+
         ExceptionUtils.rethrow(ex); // checked exception without declaring
     }
 

@@ -22,7 +22,7 @@ license {
     include 'noconnect/'
 }
 
-version = '0.4.6'
+version = '0.4.7'
 group = 'noconnect' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'NoConnect'
 
